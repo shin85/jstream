@@ -1,80 +1,95 @@
 <?php
+/**
+ * Author: Stefan Lee
+ * 
+ */
+
 namespace shin85\jstream;
 
 class jstream
 {
     private $cid;
-    private $writeAPI;
-    private $readAPI;
+    private $tokenWriteAPI;
+    private $tokenReadAPI;
     private $connectAPI;
     public $urlAuthAPI = "https://file-platform.stream.co.jp/WriteApiLocation.aspx";
     public $preUrlWrite = "https://file-platform.stream.co.jp/writeapi";
-    public $preUrRead = "http://api01-platform.stream.co.jp/apiservice";
+    public $preUrlRead = "http://api01-platform.stream.co.jp/apiservice";
     public $debug = false;
 
-    public function __construct($cid,$writeAPI,$readAPI){
+    public function __construct($cid, $tokenWriteAPI, $tokenReadAPI)
+    {
         $this->cid = $cid;
-        $this->writeAPI = $writeAPI;
-        $this->readAPI = $readAPI;
-        if ($this->connectAPI == null){
-            $this->connectAPI = $this->connect();
-        }
-        if ($this->debug === true){
-            var_dump($this->connectAPI);
+        $this->tokenWriteAPI = $tokenWriteAPI;
+        $this->tokenReadAPI = $tokenReadAPI;
+        if ($this->connectAPI == null) {
+            $this->connect();
         }
     }
-    public function createLiveStream($name= "test", $description= "description", $quality= "low"){
-        $data["name"] = $name;
-        if (!in_array($quality,["low", "standard", "high", "hd", "fhd", "low"])){
-            $quality = "low";
-        }
-        $data["quality_".$quality] = 1;
-        $url = $this->preUrlWrite. "/live/setProfile/".$this->connectAPI;
-        $result = [];
-        $resultCreateLive = $this->postAPI($url, $data);
-        if (isset($resultCreateLive["lpid"])){
-            $url = $this->preUrlWrite. "/live/setProfile/".$this->connectAPI;
-            $resultGetDataLiveStream = $this->postAPI($url, ["lpid" => $resultCreateLive["lpid"]]);
-            $result["lpid"] = $resultCreateLive["lpid"];
-            $result["url"] = $resultGetDataLiveStream["encoder_setting"]["server_mainurl"];
-        }
-        return $result;
-    }
-    public function getListVideo(){
-        if ($this->readAPI){
-            $url = $this->urlReadAPI."";
-            $result = $this->getAPI();
-            if ($this->debug === true) {
-                var_dump($url);
+    public function createLiveStream($name = "test", $description = "description", $quality = "low")
+    {
+        if ($this->connectAPI) {
+            $data["name"] = $name;
+            if (!in_array($quality, ["low", "standard", "high", "hd", "fhd", "low"])) {
+                $quality = "low";
             }
+            $data["quality_" . $quality] = 1;
+            $url = $this->preUrlWrite . "/live/setProfile/" . $this->connectAPI;
+            $result = [];
+            $resultCreateLive = $this->postAPI($url, $data, true);
+            if (isset($resultCreateLive["lpid"])) {
+                $url = $this->preUrlWrite . "/live/getEncoder/" . $this->connectAPI;
+                $resultGetDataLiveStream = $this->postAPI($url, ["lpid" => $resultCreateLive["lpid"]], true);
+                $result["lpid"] = $resultCreateLive["lpid"];
+                $result["url"] = $resultGetDataLiveStream["encoder_setting"]["server_mainurl"];
+            }
+            return $result;
         }
     }
-    private function connect(){
-        if ($this->connectAPI == null){
-            $this->connectAPI = $this->postAPI($this->urlAuthAPI,[
+    public function getListVideo()
+    {
+        if ($this->tokenReadAPI) {
+            $url = $this->preUrlRead . "/getMediaByParam/";
+            $params["token"] = $this->tokenReadAPI;
+            $result = $this->getAPI($url, $params);
+            preg_match("/searchResultEq\((.*)\);/i", $result, $matches);
+            return json_decode($matches[1], true);
+        } else {
+            return false;
+        }
+    }
+    private function connect()
+    {
+        if ($this->connectAPI == null) {
+            $this->connectAPI = $this->postAPI($this->urlAuthAPI, [
                 "cid" => $this->cid,
-                "API" => $this->writeAPI
+                "API" => $this->tokenWriteAPI
             ]);
         }
     }
-    private function getAPI($url = "", $params = array()){
-        if ($url){
-            $fullUrl = $url."?".http_build_query($params);
+    private function getAPI($url = "", $params = array(), $json = false)
+    {
+        if ($url) {
+            $fullUrl = $url . "?" . http_build_query($params);
             $curl = curl_init();
-            curl_setopt_array($curl ,[
-                CURLOPT_RETURNTRANSFER => 0,
+            curl_setopt_array($curl, [
+                CURLOPT_RETURNTRANSFER => 1,
                 CURLOPT_URL => $fullUrl,
                 CURLOPT_SSL_VERIFYPEER => false
             ]);
             $resp = curl_exec($curl);
             curl_close($curl);
-            return $resp;
+            if ($json) {
+                return json_decode($resp, true);
+            } else {
+                return $resp;
+            }
         } else {
             return false;
         }
-
     }
-    private function postAPI($url = "", $data =array()){
+    private function postAPI($url = "", $data = array(), $json = false)
+    {
         if ($url) {
             $curl = curl_init();
             curl_setopt_array($curl, array(
@@ -86,7 +101,11 @@ class jstream
             ));
             $resp = curl_exec($curl);
             curl_close($curl);
-            return $resp;
+            if ($json) {
+                return json_decode($resp, true);
+            } else {
+                return $resp;
+            }
         } else {
             return false;
         }
