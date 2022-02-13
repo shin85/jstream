@@ -10,6 +10,7 @@ class jstream
     public $urlAuthAPI = "https://file-platform.stream.co.jp/WriteApiLocation.aspx";
     public $preUrlWrite = "https://file-platform.stream.co.jp/writeapi";
     public $preUrRead = "http://api01-platform.stream.co.jp/apiservice";
+    public $debug = false;
 
     public function __construct($cid,$writeAPI,$readAPI){
         $this->cid = $cid;
@@ -17,6 +18,9 @@ class jstream
         $this->readAPI = $readAPI;
         if ($this->connectAPI == null){
             $this->connectAPI = $this->connect();
+        }
+        if ($this->debug === true){
+            var_dump($this->connectAPI);
         }
     }
     public function createLiveStream($name= "test", $description= "description", $quality= "low"){
@@ -28,7 +32,7 @@ class jstream
         $url = $this->preUrlWrite. "/live/setProfile/".$this->connectAPI;
         $result = [];
         $resultCreateLive = $this->postAPI($url, $data);
-        if ($resultCreateLive["lpid"]){
+        if (isset($resultCreateLive["lpid"])){
             $url = $this->preUrlWrite. "/live/setProfile/".$this->connectAPI;
             $resultGetDataLiveStream = $this->postAPI($url, ["lpid" => $resultCreateLive["lpid"]]);
             $result["lpid"] = $resultCreateLive["lpid"];
@@ -40,6 +44,9 @@ class jstream
         if ($this->readAPI){
             $url = $this->urlReadAPI."";
             $result = $this->getAPI();
+            if ($this->debug === true) {
+                var_dump($url);
+            }
         }
     }
     private function connect(){
