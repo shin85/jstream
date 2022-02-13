@@ -9,7 +9,7 @@
             "email": "admin@dqmail.net"
         }
     ],
-    "minimum-stability": "stable",
+    "minimum-stability": "0.1.1",
     "autoload": {
         "psr-4": {"shin85\\jstream\\": "src/"}
     },
