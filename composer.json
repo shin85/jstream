@@ -1,0 +1,17 @@
+{
+    "name": "shin85/jstream",
+    "description": "Jstream API PHP",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Stefan Lee",
+            "email": "ledanglong@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {"shin85\\jstream\\": "src/"}
+    },
+    "require": {}
+}
