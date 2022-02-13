@@ -7,9 +7,9 @@ class jstream
     private $writeAPI;
     private $readAPI;
     private $connectAPI;
-    public $urlWriteAPI = "https://file-platform.stream.co.jp/WriteApiLocation.aspx";
-    public $urlReadAPI = "https://file-platform.stream.co.jp/WriteApiLocation.aspx";
+    public $urlAuthAPI = "https://file-platform.stream.co.jp/WriteApiLocation.aspx";
     public $preUrlWrite = "https://file-platform.stream.co.jp/writeapi";
+    public $preUrRead = "http://api01-platform.stream.co.jp/apiservice";
 
     public function __construct($cid,$writeAPI,$readAPI){
         $this->cid = $cid;
@@ -36,9 +36,15 @@ class jstream
         }
         return $result;
     }
+    public function getListVideo(){
+        if ($this->readAPI){
+            $url = $this->urlReadAPI."";
+            $result = $this->getAPI();
+        }
+    }
     private function connect(){
         if ($this->connectAPI == null){
-            $this->connectAPI = $this->postAPI($this->urlWriteAPI,[
+            $this->connectAPI = $this->postAPI($this->urlAuthAPI,[
                 "cid" => $this->cid,
                 "API" => $this->writeAPI
             ]);
