@@ -7,6 +7,10 @@ class jstream
     private $writeAPI;
     private $readAPI;
     private $connectAPI;
+    public $urlWriteAPI = "https://file-platform.stream.co.jp/WriteApiLocation.aspx";
+    public $urlReadAPI = "https://file-platform.stream.co.jp/WriteApiLocation.aspx";
+    public $preUrlWrite = "https://file-platform.stream.co.jp/writeapi";
+
     public function __construct($cid,$writeAPI,$readAPI){
         $this->cid = $cid;
         $this->writeAPI = $writeAPI;
@@ -15,11 +19,29 @@ class jstream
             $this->connectAPI = $this->connect();
         }
     }
+    public function createLiveStream($name= "test", $description= "description", $quality= "low"){
+        $data["name"] = $name;
+        if (!in_array($quality,["low", "standard", "high", "hd", "fhd", "low"])){
+            $quality = "low";
+        }
+        $data["quality_".$quality] = 1;
+        $url = $this->preUrlWrite. "/live/setProfile/".$this->connectAPI;
+        $result = [];
+        $resultCreateLive = $this->postAPI($url, $data);
+        if ($resultCreateLive["lpid"]){
+            $url = $this->preUrlWrite. "/live/setProfile/".$this->connectAPI;
+            $resultGetDataLiveStream = $this->postAPI($url, ["lpid" => $resultCreateLive["lpid"]]);
+            $result["lpid"] = $resultCreateLive["lpid"];
+            $result["url"] = $resultGetDataLiveStream["encoder_setting"]["server_mainurl"];
+        }
+        return $result;
+    }
     private function connect(){
         if ($this->connectAPI == null){
-            
-        } else {
-            return $this->connectAPI;
+            $this->connectAPI = $this->postAPI($this->urlWriteAPI,[
+                "cid" => $this->cid,
+                "API" => $this->writeAPI
+            ]);
         }
     }
     private function getAPI($url = "", $params = array()){
