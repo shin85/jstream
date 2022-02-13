@@ -14,6 +14,6 @@
         "psr-4": {"shin85\\jstream\\": "src/"}
     },
     "require": {
-        "php": "7.4"
+        "php": ">=7.4"
     }
 }
